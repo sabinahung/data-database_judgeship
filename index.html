@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>US Judgeship Appointments</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/papaparse@latest/papaparse.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+      .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+
+      .mapboxgl-popup {
+        max-width: 400px;
+        font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+
+    <script>
+      //YOUR TURN: Replace with a link to your CSV
+      const csvUrl =
+        "https://github.com/sabinahung/data-database_judgeship/blob/d61555cfd02fbf58bb05ad57f8e9881cd06657a3/csv_results/analysis.csv";
+
+      const csvPromise = papaPromise(csvUrl);
+      //YOUR TURN: Replace with your Mapbox Token
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoidGgzMDc3IiwiYSI6ImNsemtjZTJsNDEwcjMybHB1bmVtZXNnb2YifQ.6HdFXmh4tEE6-hU7h9lipg";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/light-v10", // YOUR TURN: choose a style: https://docs.mapbox.com/api/maps/#styles
+        zoom: 3.7, // zoom level
+        center: [-97, 38.0], // center ][lng, lat]
+        transformRequest: transformRequest,
+      });
+
+      map.on("load", function () {
+        csvPromise.then(function (results) {
+          console.log(results.data);
+          results.data.forEach((row) => {
+            map.setFeatureState(
+              {
+                //YOUR TURN: Replace with your source tileset and source layer
+                source: "courts",
+                sourceLayer: "courts",
+                //YOUR TURN: Replace with unqiue ID row name
+                id: row.circuit_join,
+              },
+              //YOUR TURN: Add rows you want to style/interact with
+              {
+                D: row.D,
+                R: row.R,
+              }
+            );
+          });
+        });
+
+        //YOUR TURN: Add source layer
+        map.addSource("courts", {
+          type: "vector",
+          url: "mapbox://th3077.6kenzy98",
+          promoteId: 'NAME'
+        });
+
+        map.addLayer({
+          id: "court-fill",
+          type: "fill",
+          source: "courts",
+          layout: {},
+          paint: {
+                'fill-color': '#0080ff', // blue color fill
+                'fill-opacity': 0.5
+          },
+        });
+
+        map.addLayer({
+          id: "court-line",
+          type: "line",
+          source: "courts",
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#D8CAC1",
+            "line-width": 1,
+          },
+        });
+      });
+
+    //   var popup = new mapboxgl.Popup({
+    //     closeButton: false,
+    //     closeOnClick: false,
+    //   });
+
+    //   map.on("mousemove", "ca-district-fill", function (e) {
+    //     map.getCanvas().style.cursor = "pointer";
+
+    //     var district = map.queryRenderedFeatures(e.point, {
+    //       layers: ["ca-district-fill"],
+    //     });
+
+    //     var props = district[0].properties;
+
+    //     var state = district[0].state;
+
+    //     var content = "<b>" + "District Details" + "</b>" + "<br>";
+    //     content += "Representative: " + state.candidate + "<br>";
+    //     content += "District: " + props.CD116FP + "<br>";
+    //     popup.setLngLat(e.lngLat).setHTML(content).addTo(map);
+    //   });
+
+    //   map.on("mouseleave", "county-fill", function () {
+    //     map.getCanvas().style.cursor = "";
+    //     popup.remove();
+    //   });
+
+      function transformRequest(url, resourceType) {
+        var isMapboxRequest =
+          url.slice(8, 22) === "api.mapbox.com" ||
+          url.slice(10, 26) === "tiles.mapbox.com";
+        return {
+          url: isMapboxRequest
+            ? url.replace("?", "?pluginName=dataJoins&")
+            : url,
+        };
+      }
+      function papaPromise(url) {
+        return new Promise(function (resolve, reject) {
+          Papa.parse(url, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: resolve,
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
