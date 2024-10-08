@@ -43,6 +43,8 @@
 
     <script>
       //YOUR TURN: Replace with a link to your CSV
+      let hoveredPolygonId = null;
+
       const csvUrl =
         "https://raw.githubusercontent.com/sabinahung/data-database_judgeship/main/csv_results/analysis.csv";
 
@@ -72,15 +74,14 @@
               },
               //YOUR TURN: Add rows you want to style/interact with
               {
-                D: row.D,
-                R: row.R,
+                party: row.party,
               }
             );
           });
         });
 
         //YOUR TURN: Add source layer
-        map.addSource("court", {
+        map.addSource("Map_2-04o0xv", {
           type: "vector",
           url: "mapbox://th3077.6kenzy98",
           promoteId: 'NAME'
@@ -89,28 +90,32 @@
         map.addLayer({
           id: "court-fill",
           type: "fill",
-          source: "court",
+          source: "Map_2-04o0xv",
           'source-layer': 'Map_2-04o0xv',
           layout: {},
           paint: {
             'fill-color': [
                 'match',
                 ['feature-state', 'party'],
-                'democrat',
+                'D',
                 '#6BA0C7',
-                'republican',
+                'R',
                 '#CE575E',
                 '#CCC'
     ],
-    'fill-opacity': 0.9
-
+    'fill-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    1,
+                    0.5
+                ]
           },
         });
 
         map.addLayer({
           id: "court-line",
           type: "line",
-          source: "court",
+          source: "Map_2-04o0xv",
           'source-layer': 'Map_2-04o0xv',
           layout: {
             "line-join": "round",
@@ -123,32 +128,72 @@
         });
       });
 
-    //   var popup = new mapboxgl.Popup({
-    //     closeButton: false,
-    //     closeOnClick: false,
-    //   });
+      var popup = new mapboxgl.Popup({
+  closeButton: false
+});
 
-    //   map.on("mousemove", "ca-district-fill", function (e) {
-    //     map.getCanvas().style.cursor = "pointer";
+map.on("mousemove", "court-fill", function (e) {
+  map.getCanvas().style.cursor = "pointer";
+  if (e.features.length > 0) {
+                if (hoveredPolygonId !== null) {
+                    map.setFeatureState(
+                        { source: 'Map_2-04o0x', id: hoveredPolygonId },
+                        { hover: false }
+                    );
+                }
+                hoveredPolygonId = e.features[0].id;
+                map.setFeatureState(
+                    { source: 'Map_2-04o0x', id: hoveredPolygonId },
+                    { hover: true }
+                );
+            }
 
-    //     var district = map.queryRenderedFeatures(e.point, {
-    //       layers: ["ca-district-fill"],
-    //     });
 
-    //     var props = district[0].properties;
+  var circuit = map.queryRenderedFeatures(e.point, {
+    layers: ["court-fill"]
+  });
 
-    //     var state = district[0].state;
+  var props = circuit[0].properties;
 
-    //     var content = "<b>" + "District Details" + "</b>" + "<br>";
-    //     content += "Representative: " + state.candidate + "<br>";
-    //     content += "District: " + props.CD116FP + "<br>";
-    //     popup.setLngLat(e.lngLat).setHTML(content).addTo(map);
-    //   });
+  var presidentialData = [
+    { president: "Obama", value: props.Obama },
+    { president: "Trump", value: props.Trump },
+    { president: "Biden", value: props.Biden },
+    { president: "Clinton", value: props.Clinton },
+    { president: "Bush", value: props.Bush },
+    { president: "Reagan", value: props.Reagan },
+    { president: "Carter", value: props.Carter },
+    { president: "Ford", value: props.Ford },
+    { president: "Nixon", value: props.Nixon },
+    { president: "H.W. Bush", value: props.HWBush }
+  ];
 
-    //   map.on("mouseleave", "county-fill", function () {
-    //     map.getCanvas().style.cursor = "";
-    //     popup.remove();
-    //   });
+  // Sort the presidentialData array in descending order by value
+  presidentialData.sort((a, b) => b.value - a.value);
+
+  var content = "<b>Presidential Appointments in " + props.NAME + "</b><br>";
+
+  // Add the sorted presidential data to the content
+  presidentialData.forEach(function(data) {
+    if (data.value !== 0) {
+      content += `${data.president}: ${data.value}<br>`;
+    }
+  });
+
+  popup.setLngLat(e.lngLat).setHTML(content).addTo(map);
+});
+
+      map.on("mouseleave", "court-fill", function () {
+        map.getCanvas().style.cursor = "";
+        popup.remove();
+
+        if (hoveredPolygonId !== null) {
+          map.setFeatureState(
+            { source: "Map_2-04o0xv", id: hoveredPolygonId },
+            { hover: false }
+          );
+        }
+      });
 
       function transformRequest(url, resourceType) {
         var isMapboxRequest =
