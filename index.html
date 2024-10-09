@@ -42,22 +42,26 @@
     <div id="map"></div>
 
     <script>
-      //YOUR TURN: Replace with a link to your CSV
       let hoveredPolygonId = null;
-
+      const bounds = [
+        [-180, 20], // Southwest coordinates
+        [-30, 80], // Northeast coordinates
+      ];
       const csvUrl =
         "https://raw.githubusercontent.com/sabinahung/data-database_judgeship/main/csv_results/analysis.csv";
 
       const csvPromise = papaPromise(csvUrl);
-      //YOUR TURN: Replace with your Mapbox Token
       mapboxgl.accessToken =
         "pk.eyJ1IjoidGgzMDc3IiwiYSI6ImNsemtjZTJsNDEwcjMybHB1bmVtZXNnb2YifQ.6HdFXmh4tEE6-hU7h9lipg";
       var map = new mapboxgl.Map({
         container: "map",
-        style: "mapbox://styles/mapbox/light-v10", // YOUR TURN: choose a style: https://docs.mapbox.com/api/maps/#styles
-        zoom: 3.7, // zoom level
-        center: [-97, 38.0], // center ][lng, lat]
+        style: "mapbox://styles/mapbox/light-v10", 
+        zoom: 3.4, 
+        center: [-97, 38.0], // [lng, lat]
+        maxBounds: bounds,
         transformRequest: transformRequest,
+        maxZoom: 4,
+        minZoom: 2.5,
       });
 
       map.on("load", function () {
@@ -126,13 +130,7 @@
             "line-width": 1,
           },
         });
-      });
-
-      var popup = new mapboxgl.Popup({
-  closeButton: false
-});
-
-map.on("mousemove", "court-fill", function (e) {
+        map.on("mousemove", "court-fill", function (e) {
   map.getCanvas().style.cursor = "pointer";
   if (e.features.length > 0) {
                 if (hoveredPolygonId !== null) {
@@ -183,7 +181,7 @@ map.on("mousemove", "court-fill", function (e) {
   popup.setLngLat(e.lngLat).setHTML(content).addTo(map);
 });
 
-      map.on("mouseleave", "court-fill", function () {
+map.on("mouseleave", "court-fill", function () {
         map.getCanvas().style.cursor = "";
         popup.remove();
 
@@ -193,7 +191,15 @@ map.on("mousemove", "court-fill", function (e) {
             { hover: false }
           );
         }
+        hoveredPolygonId = null;
+        });
       });
+
+      var popup = new mapboxgl.Popup({
+  closeButton: false
+});
+
+
 
       function transformRequest(url, resourceType) {
         var isMapboxRequest =
