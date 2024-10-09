@@ -17,6 +17,39 @@
       body {
         margin: 0;
         padding: 0;
+        font-family: "Helvetica Neue", Arial, Helvetica, san-serif;
+      }
+
+      .intro-panel {
+          z-index: 2;
+          width: 18svw;
+          background-color: rgba(111, 111, 111, 0.708);
+          position: absolute;
+          margin: 3svh 0 0 3svw;
+          border-radius: 5px;
+          text-align: left;
+          color: white;
+          text-shadow: 0px 0px 30px  rgba(0, 0, 0, 0.5);
+          padding: 2svh 1.5svw;
+          line-height: 2em;
+          letter-spacing: 1.05px;
+
+        }
+      
+      h2{
+        font-weight: 800;
+        font-family: "Helvetica Neue", Arial, Helvetica, san-serif;
+        letter-spacing: 1.2px;
+
+      }
+      
+      a, .byline {
+        color: white;
+        font-weight: 600;
+      }
+
+      .description {
+        line-height: 1.5em;
       }
 
       #map {
@@ -39,6 +72,16 @@
   </head>
 
   <body>
+    <div class="intro-panel">
+      <h2>Who appointed the judges?</h2>
+      <p class="byline">By <a href="https://sabinahung.github.io/">Sabina Hung</a></p>
+      <p class="description">This is a map of presidential appointments at U.S. federal court of appeals as of November 2023.</p>
+      <p class="description">Hover over a circuit to see the number of judges appointed by each president.</p>
+      <!-- 
+      <h2>Here is our subheadline</h2>
+      
+   -->
+    </div>
     <div id="map"></div>
 
     <script>
@@ -57,7 +100,7 @@
         container: "map",
         style: "mapbox://styles/mapbox/light-v10", 
         zoom: 3.4, 
-        center: [-97, 38.0], // [lng, lat]
+        center: [-105, 38.0], // [lng, lat]
         maxBounds: bounds,
         transformRequest: transformRequest,
         maxZoom: 4,
@@ -131,45 +174,31 @@
             "line-width": 1,
           },
         });
-      //   map.on("mousemove", "court-fill", function (e) {
-      // map.getCanvas().style.cursor = "pointer";
-      // if (e.features.length > 0) {
-      //               if (hoveredPolygonId !== null) {
-      //                   map.setFeatureState(
-      //                       { source: 'Map_2-04o0x', id: hoveredPolygonId },
-      //                       { hover: false }
-      //                   );
-      //               }
-      //               hoveredPolygonId = e.features[0].NAME;
-      //               map.setFeatureState(
-      //                   { source: 'Map_2-04o0x', id: hoveredPolygonId },
-      //                   { hover: true }
-      //               );
-      //           }});
+
 map.on("mousemove", "court-fill", function (e) {
-      map.getCanvas().style.cursor = "pointer";
-    csvPromise.then(function (results) {
-          results.data.forEach((row) => { 
-            if (row.circuit_join === circuit[0].properties.NAME) { // if the circuit_join matches the NAME of the hovered feature
-              map.setFeatureState(
-                {
-                  source: "Map_2-04o0xv",
-                  sourceLayer: "Map_2-04o0xv",
-                  id: row.circuit_join,
-                },
-                { hover: true }
-              );
-            } else {
-            map.setFeatureState(
-              {
-                source: "Map_2-04o0xv",
-                sourceLayer: "Map_2-04o0xv",
-                id: row.circuit_join,
-              },
-              { hover: false }
-            );
-          }});
-        });
+        csvPromise.then(function (results) {
+              results.data.forEach((row) => { 
+                if (row.circuit_join === circuit[0].properties.NAME) { // if the circuit_join matches the NAME of the hovered feature
+                  map.setFeatureState(
+                    {
+                      source: "Map_2-04o0xv",
+                      sourceLayer: "Map_2-04o0xv",
+                      id: row.circuit_join,
+                    },
+                    { hover: true }
+                  );
+                } else {
+                map.getCanvas().style.cursor = "";
+                map.setFeatureState(
+                  {
+                    source: "Map_2-04o0xv",
+                    sourceLayer: "Map_2-04o0xv",
+                    id: row.circuit_join,
+                  },
+                  { hover: false }
+                );
+              }});
+            });
   var circuit = map.queryRenderedFeatures(e.point, {
     layers: ["court-fill"]
   });
@@ -205,7 +234,6 @@ map.on("mousemove", "court-fill", function (e) {
 });
 
 map.on("mouseleave", "court-fill", function () {
-        map.getCanvas().style.cursor = "";
         popup.remove();
 
         // if (hoveredPolygonId !== null) {
