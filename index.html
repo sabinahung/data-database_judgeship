@@ -79,6 +79,7 @@
               //YOUR TURN: Add rows you want to style/interact with
               {
                 party: row.party,
+                hover: false,
               }
             );
           });
@@ -110,7 +111,7 @@
     'fill-opacity': [
                     'case',
                     ['boolean', ['feature-state', 'hover'], false],
-                    1,
+                    0.8,
                     0.5
                 ]
           },
@@ -130,23 +131,45 @@
             "line-width": 1,
           },
         });
-        map.on("mousemove", "court-fill", function (e) {
-  map.getCanvas().style.cursor = "pointer";
-  if (e.features.length > 0) {
-                if (hoveredPolygonId !== null) {
-                    map.setFeatureState(
-                        { source: 'Map_2-04o0x', id: hoveredPolygonId },
-                        { hover: false }
-                    );
-                }
-                hoveredPolygonId = e.features[0].id;
-                map.setFeatureState(
-                    { source: 'Map_2-04o0x', id: hoveredPolygonId },
-                    { hover: true }
-                );
-            }
-
-
+      //   map.on("mousemove", "court-fill", function (e) {
+      // map.getCanvas().style.cursor = "pointer";
+      // if (e.features.length > 0) {
+      //               if (hoveredPolygonId !== null) {
+      //                   map.setFeatureState(
+      //                       { source: 'Map_2-04o0x', id: hoveredPolygonId },
+      //                       { hover: false }
+      //                   );
+      //               }
+      //               hoveredPolygonId = e.features[0].NAME;
+      //               map.setFeatureState(
+      //                   { source: 'Map_2-04o0x', id: hoveredPolygonId },
+      //                   { hover: true }
+      //               );
+      //           }});
+map.on("mousemove", "court-fill", function (e) {
+      map.getCanvas().style.cursor = "pointer";
+    csvPromise.then(function (results) {
+          results.data.forEach((row) => { 
+            if (row.circuit_join === circuit[0].properties.NAME) { // if the circuit_join matches the NAME of the hovered feature
+              map.setFeatureState(
+                {
+                  source: "Map_2-04o0xv",
+                  sourceLayer: "Map_2-04o0xv",
+                  id: row.circuit_join,
+                },
+                { hover: true }
+              );
+            } else {
+            map.setFeatureState(
+              {
+                source: "Map_2-04o0xv",
+                sourceLayer: "Map_2-04o0xv",
+                id: row.circuit_join,
+              },
+              { hover: false }
+            );
+          }});
+        });
   var circuit = map.queryRenderedFeatures(e.point, {
     layers: ["court-fill"]
   });
@@ -185,13 +208,13 @@ map.on("mouseleave", "court-fill", function () {
         map.getCanvas().style.cursor = "";
         popup.remove();
 
-        if (hoveredPolygonId !== null) {
-          map.setFeatureState(
-            { source: "Map_2-04o0xv", id: hoveredPolygonId },
-            { hover: false }
-          );
-        }
-        hoveredPolygonId = null;
+        // if (hoveredPolygonId !== null) {
+        //   map.setFeatureState(
+        //     { source: "Map_2-04o0xv", id: hoveredPolygonId },
+        //     { hover: false }
+        //   );
+        // }
+        // hoveredPolygonId = null;
         });
       });
 
